@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from database import db
 from dotenv import load_dotenv
+from routes.auth import auth
 import os
 
 load_dotenv()
@@ -18,8 +19,12 @@ def create_app():
     JWTManager(app)
     CORS(app)
 
+    app.register_blueprint(auth, url_prefic = "/auth")
+
     return app
 
 if __name__ == "__main__":
     app = create_app
+    with app.app_context():
+        db.create_all()
     app.run(debug = True)

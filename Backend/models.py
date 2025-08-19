@@ -5,7 +5,7 @@ class User(db.model):
     id = db.Column(db.Integer, primary_key = True)
     username = db.Column(db.String(50), unique = True, nullable = False)
     password_hash = db.Column(db.String(50), unique = True, nullable = False)
-    role = db.column(db.String(20), default = "user") #user or manager
+    role = db.column(db.String(20), default = "user") #user or organiser
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -21,7 +21,7 @@ class User(db.model):
 
 class Event(db.model):
     id = db.Column(db.Integer, primary_key = True)
-    title = db.Column(db.String(150), nullable = False)
+    title = db.Column(db.String(150),unique= True, nullable = False)
     description = db.Column(db.Text, nullable = False)
     date = db.Column(db.Date, nullable = False)
     seats = db.Column(db.Integer, nullable = False)
