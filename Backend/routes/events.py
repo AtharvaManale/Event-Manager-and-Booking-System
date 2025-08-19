@@ -8,11 +8,11 @@ event = Blueprint("event", __name__)
 @event.route('/events')
 def events():
     events = Event.query.all()
-    return jsonify ({e.to_dict() for e in events})
+    return jsonify ([e.to_dict() for e in events])
 
-@event.route('/add')
+@event.route('/addevent',  methods=["POST"])
 @jwt_required
-def add():
+def add_event():
     user = get_jwt_identity()
 
     if user["role"] != "organiser":
@@ -20,7 +20,7 @@ def add():
     
     data = request.json
 
-    if Event.query.filter_by(title = data["title"], date = data["date"]):
+    if Event.query.filter_by(title = data["title"], date = data["date"]).first():
         return jsonify ({"error" : "Event Already Exists!"}), 400
 
     event = Event(

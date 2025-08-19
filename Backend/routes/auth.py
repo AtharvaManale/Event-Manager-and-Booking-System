@@ -5,7 +5,7 @@ from flask_jwt_extended import create_access_token
 
 auth = Blueprint("auth", __name__)
 
-@auth.route('/')
+@auth.route('/', methods=["POST"])
 def register():
     data = request.json
     if User.query.filter_by(username = data["username"]).first():
