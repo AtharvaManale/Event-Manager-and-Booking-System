@@ -8,6 +8,9 @@ event = Blueprint("event", __name__)
 @event.route('/events')
 def events():
     events = Event.query.all()
+    if not event:
+        return jsonify({"error" : "No Event present To Book!"}), 404
+
     return jsonify ([e.to_dict() for e in events])
 
 @event.route('/addevent',  methods=["POST"])
@@ -33,4 +36,44 @@ def add_event():
     db.session.add(event)
     db.session.commit()
 
-    return jsonify({"message" : "New Event Added Successfuly!"}), 201
+    return jsonify({"message" : "New Event Added Successfuly!"}), 200
+
+@event.route('/<int:id>', methods=["PUT"])
+@jwt_required()
+def update_event(id):
+    user = get_jwt_identity()
+    if user["role"] != "organiser":
+        return jsonify({"error" : "Your Not An Organiser!"}), 403
+    
+    event = Event.query.get(id)
+    if not event:
+        return jsonify({"error" : "Event Not Found!"}), 404
+    if event.organiser_id != user["id"]:
+        return jsonify ({"error" : "Your Not The Organiser Of This Event!"}), 403
+
+    data = request.json
+    event.title = data.get("title", event.title)
+    event.description = data.get("description", event.description)
+    event.date = data.get("date", event.date)
+    event.seats = data.get("seats", event.seats)
+
+    db.session.commit()
+    return jsonify({"message" : "Event updated successfuly!"}), 200
+
+@event.route('/<int:id>', methods = ["DELETE"])
+@jwt_required()
+def delete_event(id):
+    user = get_jwt_identity()
+    if user["role"] != "organiser":
+        return jsonify({"error" : "Your Not An Organiser!"}), 403
+    
+    event = Event.query.get(id)
+    if not event:
+        return jsonify({"error" : "Event Not Found!"}), 404
+    if event.organiser_id != user["id"]:
+        return jsonify ({"error" : "Your Not The Organiser Of This Event!"}), 403
+    
+    db.session.delete(event)
+    db.session.commit()
+
+    return jsonify({"message" : "Event Successfuly Deleted!"}), 200

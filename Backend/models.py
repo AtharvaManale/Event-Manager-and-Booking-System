@@ -2,7 +2,7 @@ from database import db
 from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(db.model):
-    id = db.Column(db.Integer, primary_key = True)
+    id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     username = db.Column(db.String(50), unique = True, nullable = False)
     password_hash = db.Column(db.String(50), unique = True, nullable = False)
     role = db.column(db.String(20), default = "user") #user or organiser
@@ -20,7 +20,7 @@ class User(db.model):
         }
 
 class Event(db.model):
-    id = db.Column(db.Integer, primary_key = True)
+    id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     title = db.Column(db.String(150),unique= True, nullable = False)
     description = db.Column(db.Text, nullable = False)
     date = db.Column(db.Date, nullable = False)
@@ -38,7 +38,7 @@ class Event(db.model):
         }
 
 class Booking(db.model):
-    id = db.Column(db.Integer, primary_key = True)
+    id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     user_id = db.Column(db.Integer, db.foreignKey('user.id'), nullable = False)
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable = False)
     status = db.Column(db.String(20), default = 'Booked')
