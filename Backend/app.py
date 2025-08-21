@@ -5,6 +5,7 @@ from flask_cors import CORS
 from database import db
 from dotenv import load_dotenv
 from routes.auth import auth
+from routes.events import events
 import os
 
 load_dotenv()
@@ -20,7 +21,7 @@ def create_app():
     CORS(app)
 
     app.register_blueprint(auth, url_prefic = "/auth")
-
+    app.register_blueprint(events, url_prefix = '/events')
     return app
 
 if __name__ == "__main__":

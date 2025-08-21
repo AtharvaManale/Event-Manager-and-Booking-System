@@ -23,8 +23,10 @@ def login():
     data = request.json
     user = User.query.filter_by(username = data["username"]).first()
 
-    if not user or user.check_password(data['password']):
+    if not user or not user.check_password(data['password']):
         return jsonify ({"error" : "Incorrect Credentials!"}), 401
     
     token = create_access_token(identity={"id" : user.id, "role" : user.role})
-    return jsonify ({"message" : "Login Successfull!"}), 200
+    return jsonify (
+        {"message" : "Login Successfull!"},
+        {"access_token": token}), 200
