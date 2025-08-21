@@ -5,7 +5,8 @@ from flask_cors import CORS
 from database import db
 from dotenv import load_dotenv
 from routes.auth import auth
-from routes.events import events
+from routes.event import event
+from routes.booking import booking
 import os
 
 load_dotenv()
@@ -20,8 +21,10 @@ def create_app():
     JWTManager(app)
     CORS(app)
 
-    app.register_blueprint(auth, url_prefic = "/auth")
-    app.register_blueprint(events, url_prefix = '/events')
+    app.register_blueprint(auth, url_prefix = "/auth")
+    app.register_blueprint(event, url_prefix = "/event")
+    app.register_blueprint(booking, url_prefix = "/booking")
+
     return app
 
 if __name__ == "__main__":
