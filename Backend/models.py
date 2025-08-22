@@ -50,3 +50,7 @@ class Booking(db.model):
             "event_id" : self.event_id,
             "status" : self.status
         }
+
+class TokenBlocklist(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    jti = db.Column(db.String(36), nullable=False, index=True)

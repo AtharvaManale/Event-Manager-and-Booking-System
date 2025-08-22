@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from database import db
 from models import User
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 
 auth = Blueprint("auth", __name__)
 
@@ -27,9 +27,20 @@ def login():
         return jsonify ({"error" : "Incorrect Credentials!"}), 401
 
     token = create_access_token(identity={"id" : user.id, "role" : user.role})
+    refresh_token = create_refresh_token(identity={"id" : user.id, "role" : user.role})
+
     return jsonify (
         {"message" : "Login Successfull!"},
-        {"access_token": token}), 200
+        {"access_token": token},
+        {"refresh_token" : refresh_token}), 200
+
+@auth.route('/refresh', methods=["POST"])
+@jwt_required(refresh = True)
+def New_refresh_token():
+    identity = get_jwt_identity()
+    token = create_access_token(identity=identity)
+
+    return jsonify({"access_token" : token}), 200
 
 @auth.route('/delete_acc', methods = ["DELETE"])
 @jwt_required()
