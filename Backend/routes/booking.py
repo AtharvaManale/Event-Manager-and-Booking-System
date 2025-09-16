@@ -2,12 +2,24 @@ from flask import Blueprint, request, jsonify
 from database import db
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import Booking
+from models import Event
 
 booking = Blueprint("booking", __name__)
 
 @booking.route("/bookings")
+@jwt_required
 def show_bookings():
-    bookings = Booking.query.all()
+    user = get_jwt_identity()
+    
+    if user["role"] == "user":
+        bookings = Booking.query.filter_by(user_id = user["id"])   
+    elif user["role"] == "organiser":
+        bookings = (
+            Booking.query
+            .join(Event, Booking.event_id == Event.id)
+            .filter_by(Event.organiser_id == user["id"])
+            .all()
+            )
     return jsonify([b.to_dict for b in bookings])
 
 @booking.route("/addbooking", methods=["POST"])

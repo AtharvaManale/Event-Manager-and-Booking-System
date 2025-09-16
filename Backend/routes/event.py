@@ -38,7 +38,7 @@ def add_event():
 
     return jsonify({"message" : "New Event Added Successfuly!"}), 200
 
-@event.route('/<int:id>', methods=["PUT"])
+@event.route('/events/<int:id>', methods=["PUT"])
 @jwt_required()
 def update_event(id):
     user = get_jwt_identity()
@@ -60,7 +60,7 @@ def update_event(id):
     db.session.commit()
     return jsonify({"message" : "Event updated successfuly!"}), 200
 
-@event.route('/<int:id>', methods = ["DELETE"])
+@event.route('/events/<int:id>', methods = ["DELETE"])
 @jwt_required()
 def delete_event(id):
     user = get_jwt_identity()

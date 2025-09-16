@@ -24,7 +24,7 @@ class Event(db.model):
     title = db.Column(db.String(150),unique= True, nullable = False)
     description = db.Column(db.Text, nullable = False)
     date = db.Column(db.Date, nullable = False)
-    seats = db.Column(db.Integer, nullable = False)
+    available_seats = db.Column(db.Integer, nullable = False)
     organiser_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
 
     def to_dict(self):
@@ -33,7 +33,7 @@ class Event(db.model):
             "title" : self.title,
             "description" : self.description,
             "date" : self.date,
-            "seats" : self.seats,
+            "seats" : self.available_seats,
             "organiser_id" : self.organiser_id
         }
 
@@ -41,6 +41,7 @@ class Booking(db.model):
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     user_id = db.Column(db.Integer, db.foreignKey('user.id'), nullable = False)
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable = False)
+    seats = db.Column(db.Integer, nullable = False, default = 1)
     status = db.Column(db.String(20), default = 'Booked')
 
     def to_dict(self):
@@ -48,9 +49,6 @@ class Booking(db.model):
             "id" : self.id,
             "user_id" : self.user_id,
             "event_id" : self.event_id,
+            "seats" : self.seats,
             "status" : self.status
         }
-
-class TokenBlocklist(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    jti = db.Column(db.String(36), nullable=False, index=True)

@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_jwt_extended import JWTManager
-from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from database import db
 from dotenv import load_dotenv
@@ -16,8 +15,8 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{os.getenv("DB_USER")}:{os.getenv("DB_PASSWORD")}@{os.getenv("DB_HOST")}/{os.getenv("DB_NAME")}'
     app.config['SECERET_KEY'] = f'{os.getenv("Key")}'
     app.config['JWT_SECRET_KEY'] = f'{os.getenv("Jkey")}'
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 300
-    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = 604800
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES"))
+    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES"))
 
     db.init_app
     JWTManager(app)
