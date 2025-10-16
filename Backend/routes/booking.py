@@ -7,7 +7,7 @@ from models import Event
 booking = Blueprint("booking", __name__)
 
 @booking.route("/bookings")
-@jwt_required
+@jwt_required()
 def show_bookings():
     user = get_jwt_identity()
     
@@ -17,31 +17,39 @@ def show_bookings():
         bookings = (
             Booking.query
             .join(Event, Booking.event_id == Event.id)
-            .filter_by(Event.organiser_id == user["id"])
+            .filter(Event.organiser_id == user["id"])
             .all()
             )
-    return jsonify([b.to_dict for b in bookings])
+    return jsonify([b.to_dict() for b in bookings])
 
-@booking.route("/addbooking", methods=["POST"])
-@jwt_required
-def add_booking():
+@booking.route("/addbooking/<int:id>", methods=["POST"])
+@jwt_required()
+def add_booking(id):
     user = get_jwt_identity()
 
     if user["role"] != "user":
         return jsonify({"error" : "Sorry You Cant Book Events"}), 403
     
     data = request.json
+    event = Event.query.get(id)
+    seats_booking = data.get("seats")
 
-    if Booking.query.filter_by(event_id = data["event_id"], user_id = user["id"]).first():
+    if Booking.query.filter_by(event_id = id, user_id = user["id"]).first():
         return ({"error" : "You Already Have A Similar Booking!"}), 400
     
+    if event.remaining_seats < seats_booking:
+        return({"error" : f'Only {event.remaining_seats} seat are available'}), 404
+    
+    event.remaining_seats -= seats_booking
+
     booking = Booking(
-        id = data["id"],
         user_id = user["id"],
         event_id = data["event_id"],
-        status = data["status"]
+        status = data["status"],
+        seats = seats_booking
     )
     db.session.add(booking)
     db.session.commit()
 
-    return jsonify ({"message" : "Seats Booked Successfuly For A New Event!"}), 200
+    return jsonify ({"message" : "Seats Booked Successfuly For The Event!",
+                    "remaining_seats" : event.remaining_seats}), 200

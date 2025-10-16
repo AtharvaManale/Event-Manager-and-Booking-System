@@ -6,6 +6,7 @@ from models import Event
 event = Blueprint("event", __name__)
 
 @event.route('/events')
+@jwt_required
 def events():
     events = Event.query.all()
     if not event:

@@ -21,11 +21,12 @@ class User(db.model):
 
 class Event(db.model):
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
+    organiser_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
     title = db.Column(db.String(150),unique= True, nullable = False)
     description = db.Column(db.Text, nullable = False)
     date = db.Column(db.Date, nullable = False)
     available_seats = db.Column(db.Integer, nullable = False)
-    organiser_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
+    remaining_seats = db.Column(db.Integer)
 
     def to_dict(self):
         return {
@@ -42,7 +43,7 @@ class Booking(db.model):
     user_id = db.Column(db.Integer, db.foreignKey('user.id'), nullable = False)
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable = False)
     seats = db.Column(db.Integer, nullable = False, default = 1)
-    status = db.Column(db.String(20), default = 'Booked')
+    status = db.Column(db.String(20), default = 'Confirmed')
 
     def to_dict(self):
         return {
