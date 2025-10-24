@@ -25,7 +25,6 @@ class Event(db.model):
     title = db.Column(db.String(150),unique= True, nullable = False)
     description = db.Column(db.Text, nullable = False)
     date = db.Column(db.Date, nullable = False)
-    available_seats = db.Column(db.Integer, nullable = False)
     remaining_seats = db.Column(db.Integer)
 
     def to_dict(self):
@@ -34,7 +33,7 @@ class Event(db.model):
             "title" : self.title,
             "description" : self.description,
             "date" : self.date,
-            "seats" : self.available_seats,
+            "remaining_seats" : self.remaining_seats,
             "organiser_id" : self.organiser_id
         }
 

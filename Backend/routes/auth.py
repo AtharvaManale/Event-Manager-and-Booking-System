@@ -16,7 +16,7 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-    return jsonify({"message" : "Thanks For SigningUp!"}), 201
+    return jsonify({"message" : "SignUp Successfull!"}), 201
 
 @auth.route('/login')
 def login():
@@ -30,9 +30,9 @@ def login():
     refresh_token = create_refresh_token(identity={"id" : user.id, "role" : user.role})
 
     return jsonify (
-        {"message" : "Login Successfull!"},
-        {"access_token": token},
-        {"refresh_token" : refresh_token}), 200
+        {"message" : "Login Successfull!",
+        "access_token": token,
+        "refresh_token" : refresh_token}), 200
 
 @auth.route('/refresh', methods=["POST"])
 @jwt_required(refresh = True)
@@ -40,7 +40,8 @@ def New_refresh_token():
     identity = get_jwt_identity()
     token = create_access_token(identity=identity)
 
-    return jsonify({"access_token" : token}), 200
+    return jsonify({"message" : "New access_token generated successfully!", 
+                    "access_token" : token}), 200
 
 @auth.route('/delete_acc', methods = ["DELETE"])
 @jwt_required()
@@ -54,4 +55,4 @@ def delete_acc():
     db.session.delete(acc)
     db.session.commit()
 
-    return jsonify({"message" : "Account Deleted Successfuly!"})
+    return jsonify({"message" : "Account Deleted Successfuly!"}),200

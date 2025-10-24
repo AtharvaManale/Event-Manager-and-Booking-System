@@ -6,7 +6,7 @@ from models import Event
 
 booking = Blueprint("booking", __name__)
 
-@booking.route("/bookings")
+@booking.route("/Bookings")
 @jwt_required()
 def show_bookings():
     user = get_jwt_identity()
@@ -22,14 +22,14 @@ def show_bookings():
             )
     return jsonify([b.to_dict() for b in bookings])
 
-@booking.route("/addbooking/<int:id>", methods=["POST"])
+@booking.route("/Bookings/<int:id>", methods=["POST"])
 @jwt_required()
 def add_booking(id):
     user = get_jwt_identity()
 
     if user["role"] != "user":
         return jsonify({"error" : "Sorry You Cant Book Events"}), 403
-    
+
     data = request.json
     event = Event.query.get(id)
     seats_booking = data.get("seats")
@@ -53,3 +53,23 @@ def add_booking(id):
 
     return jsonify ({"message" : "Seats Booked Successfuly For The Event!",
                     "remaining_seats" : event.remaining_seats}), 200
+
+@booking.route("/Bookings/<int:id>", methods = ["DELETE"])
+@jwt_required()
+def delete_booking(id):
+    user = get_jwt_identity()
+
+    if user["role"] != "user":
+        return jsonify({"error" : "Not an user!"}), 401
+    
+    booking = Booking.query.get(id)
+    if not booking:
+        return jsonify({"error" : "Booking not found!"}), 404
+    
+    event = Event.query.get(booking.event_id)
+    event.remaining_seats += booking.seats
+
+    db.session.delete(booking)
+    db.session.commit()
+
+    return jsonify({"message" : "Booking cancelled successfully!"}), 200
