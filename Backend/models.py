@@ -1,11 +1,11 @@
 from database import db
 from werkzeug.security import generate_password_hash, check_password_hash
 
-class User(db.model):
+class User(db.Model):
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     username = db.Column(db.String(50), unique = True, nullable = False)
-    password_hash = db.Column(db.String(50), unique = True, nullable = False)
-    role = db.column(db.String(20), default = "user") #user or organiser
+    password_hash = db.Column(db.String(50), nullable = False)
+    role = db.Column(db.String(20), default = "user") #user or organiser
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -19,7 +19,7 @@ class User(db.model):
             "role" : self.role
         }
 
-class Event(db.model):
+class Event(db.Model):
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     organiser_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
     title = db.Column(db.String(150),unique= True, nullable = False)
@@ -37,9 +37,9 @@ class Event(db.model):
             "organiser_id" : self.organiser_id
         }
 
-class Booking(db.model):
+class Booking(db.Model):
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
-    user_id = db.Column(db.Integer, db.foreignKey('user.id'), nullable = False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable = False)
     seats = db.Column(db.Integer, nullable = False, default = 1)
     status = db.Column(db.String(20), default = 'Confirmed')

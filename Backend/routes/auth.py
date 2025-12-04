@@ -11,7 +11,7 @@ def register():
     if User.query.filter_by(username = data["username"]).first():
         return jsonify ({"error" : "User Already Exists"}), 400
     
-    user = User(username = data["username"], role = data["role", "user"])
+    user = User(username = data["username"], role = data.get("role", "user"))
     user.set_password(data["password"])
     db.session.add(user)
     db.session.commit()

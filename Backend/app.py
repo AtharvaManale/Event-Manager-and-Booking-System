@@ -3,6 +3,7 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from database import db
 from dotenv import load_dotenv
+from datetime import timedelta
 from routes.auth import auth
 from routes.event import event
 from routes.booking import booking
@@ -13,12 +14,12 @@ load_dotenv()
 def create_app():
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{os.getenv("DB_USER")}:{os.getenv("DB_PASSWORD")}@{os.getenv("DB_HOST")}/{os.getenv("DB_NAME")}'
-    app.config['SECERET_KEY'] = f'{os.getenv("Key")}'
+    app.config['SECRET_KEY'] = f'{os.getenv("Key")}'
     app.config['JWT_SECRET_KEY'] = f'{os.getenv("Jkey")}'
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES"))
-    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES"))
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES")))
+    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES")))
 
-    db.init_app
+    db.init_app(app)
     JWTManager(app)
     CORS(app)
 
@@ -29,7 +30,7 @@ def create_app():
     return app
 
 if __name__ == "__main__":
-    app = create_app
+    app = create_app()
     with app.app_context():
         db.create_all()
     app.run(debug = True)
