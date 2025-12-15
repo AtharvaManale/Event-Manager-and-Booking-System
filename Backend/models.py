@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 class User(db.Model):
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     username = db.Column(db.String(50), unique = True, nullable = False)
-    password_hash = db.Column(db.String(50), nullable = False)
+    password_hash = db.Column(db.String(255), nullable = False)
     role = db.Column(db.String(20), default = "user") #user or organiser
 
     def set_password(self, password):
@@ -24,7 +24,7 @@ class Event(db.Model):
     organiser_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
     title = db.Column(db.String(150),unique= True, nullable = False)
     description = db.Column(db.Text, nullable = False)
-    date = db.Column(db.Date, nullable = False)
+    date_time = db.Column(db.DateTime, nullable = False)
     remaining_seats = db.Column(db.Integer)
 
     def to_dict(self):
@@ -32,7 +32,7 @@ class Event(db.Model):
             "id" : self.id,
             "title" : self.title,
             "description" : self.description,
-            "date" : self.date,
+            "date" : self.date_time,
             "remaining_seats" : self.remaining_seats,
             "organiser_id" : self.organiser_id
         }

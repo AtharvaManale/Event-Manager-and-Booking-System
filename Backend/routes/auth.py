@@ -18,7 +18,7 @@ def register():
 
     return jsonify({"message" : "SignUp Successfull!"}), 201
 
-@auth.route('/login')
+@auth.route('/login', methods=['POST'])
 def login():
     data = request.json
     user = User.query.filter_by(username = data["username"]).first()
@@ -26,8 +26,8 @@ def login():
     if not user or not user.check_password(data['password']):
         return jsonify ({"error" : "Incorrect Credentials!"}), 401
 
-    token = create_access_token(identity={"id" : user.id, "role" : user.role})
-    refresh_token = create_refresh_token(identity={"id" : user.id, "role" : user.role})
+    token = create_access_token(identity= str(user.id), additional_claims={"role" : user.role})
+    refresh_token = create_refresh_token(identity= str(user.id), additional_claims={"role" : user.role})
 
     return jsonify (
         {"message" : "Login Successfull!",
