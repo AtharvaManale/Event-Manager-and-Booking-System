@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from database import db
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from models import Event
+from datetime import datetime
 
 event = Blueprint("event", __name__)
 
@@ -24,14 +25,14 @@ def add_event():
     
     data = request.json
 
-    if Event.query.filter_by(title = data["title"], date_time = data["date"]).first():
+    if Event.query.filter_by(title = data["title"], event_time = datetime.strptime((data["event_time"]), "%Y-%m-%d %H:%M")).first():
         return jsonify ({"error" : "Event Already Exists!"}), 400
 
     event = Event(
         organiser_id = user_id,
         title = data["title"],
         description = data["description"],
-        date_time = data["date"],
+        event_time = datetime.strptime(data["event_time"], "%Y-%m-%d %H:%M"),
         remaining_seats = int(data["remaining_seats"])
     )
     db.session.add(event)
@@ -56,8 +57,8 @@ def update_event(id):
     data = request.json
     event.title = data.get("title", event.title)
     event.description = data.get("description", event.description)
-    event.date_time = data.get("date", event.date_time)
-    event.remaining_seats = data.get("seats", event.remaining_seats)
+    event.event_time = datetime.strptime(data.get("date", event.event_time), "%Y-%m-%d %H:%M")
+    event.remaining_seats = int(data.get("seats", str(event.remaining_seats)))
  
     db.session.commit()
     return jsonify({"message" : "Event updated successfuly!"}), 200

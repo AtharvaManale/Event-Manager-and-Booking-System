@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from flask_migrate import Migrate
 from database import db
 from dotenv import load_dotenv
 from datetime import timedelta
@@ -22,6 +23,7 @@ def create_app():
     db.init_app(app)
     JWTManager(app)
     CORS(app)
+    migrate  = Migrate(app, db)
 
     app.register_blueprint(auth, url_prefix = "/auth")
     app.register_blueprint(event, url_prefix = "/event")

@@ -1,5 +1,6 @@
 from database import db
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
@@ -21,27 +22,28 @@ class User(db.Model):
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
-    organiser_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
-    title = db.Column(db.String(150),unique= True, nullable = False)
+    organiser_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    title = db.Column(db.String(150), nullable = False)
     description = db.Column(db.Text, nullable = False)
-    date_time = db.Column(db.DateTime, nullable = False)
+    event_time = db.Column(db.DateTime)
     remaining_seats = db.Column(db.Integer)
+    created_at = db.Column(db.DateTime, default = datetime.utcnow)
 
     def to_dict(self):
         return {
             "id" : self.id,
             "title" : self.title,
             "description" : self.description,
-            "date" : self.date_time,
+            "date" : self.event_time,
             "remaining_seats" : self.remaining_seats,
             "organiser_id" : self.organiser_id
         }
 
 class Booking(db.Model):
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
-    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable = False)
-    seats = db.Column(db.Integer, nullable = False, default = 1)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'))
+    booked_seats = db.Column(db.Integer, default = 1)
     status = db.Column(db.String(20), default = 'Confirmed')
 
     def to_dict(self):
@@ -49,6 +51,6 @@ class Booking(db.Model):
             "id" : self.id,
             "user_id" : self.user_id,
             "event_id" : self.event_id,
-            "seats" : self.seats,
+            "seats" : self.booked_seats,
             "status" : self.status
         }

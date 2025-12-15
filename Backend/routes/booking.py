@@ -46,9 +46,8 @@ def add_booking(id):
 
     booking = Booking(
         user_id = user_id,
-        event_id = data["event_id"],
-        status = data["status"],
-        seats = seats_booking
+        event_id = id,
+        booked_seats = seats_booking
     )
     db.session.add(booking)
     db.session.commit()
@@ -70,7 +69,7 @@ def delete_booking(id):
         return jsonify({"error" : "Booking not found!"}), 404
     
     event = Event.query.get(booking.event_id)
-    event.remaining_seats += booking.seats
+    event.remaining_seats += booking.booked_seats
 
     db.session.delete(booking)
     db.session.commit()
