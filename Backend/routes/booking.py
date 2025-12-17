@@ -23,7 +23,7 @@ def show_bookings():
             )
     return jsonify([b.to_dict() for b in bookings])
 
-@booking.route("/Bookings/<int:id>", methods=["POST"])
+@booking.route("/Addbooking/<int:id>", methods=["POST"])
 @jwt_required()
 def add_booking(id):
     user_id = int(get_jwt_identity())
@@ -55,7 +55,7 @@ def add_booking(id):
     return jsonify ({"message" : "Seats Booked Successfuly For The Event!",
                     "remaining_seats" : event.remaining_seats}), 200
 
-@booking.route("/Bookings/<int:id>", methods = ["DELETE"])
+@booking.route("/Deletebooking/<int:id>", methods = ["DELETE"])
 @jwt_required()
 def delete_booking(id):
     user_id = int(get_jwt_identity())
