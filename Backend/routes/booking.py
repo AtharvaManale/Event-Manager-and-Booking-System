@@ -40,7 +40,7 @@ def add_booking(id):
         return ({"error" : "You Already Have A Similar Booking!"}), 400
     
     if event.remaining_seats < seats_booking:
-        return({"error" : f'Only {event.remaining_seats} seat are available'}), 404
+        return({"error" : f'Only {event.remaining_seats} seat are available'}), 409
     
     event.remaining_seats -= seats_booking
 

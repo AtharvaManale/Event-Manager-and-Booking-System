@@ -25,14 +25,14 @@ def add_event():
     
     data = request.json
 
-    if Event.query.filter_by(title = data["title"], event_time = datetime.strptime((data["event_time"]), "%Y-%m-%d %H:%M")).first():
+    if Event.query.filter_by(title = data["title"], event_time = datetime.strptime((data["date"]), "%Y-%m-%d %H:%M")).first():
         return jsonify ({"error" : "Event Already Exists!"}), 400
 
     event = Event(
         organiser_id = user_id,
         title = data["title"],
         description = data["description"],
-        event_time = datetime.strptime(data["event_time"], "%Y-%m-%d %H:%M"),
+        event_time = datetime.strptime(data["date"], "%Y-%m-%d %H:%M"),
         remaining_seats = int(data["remaining_seats"])
     )
     db.session.add(event)
