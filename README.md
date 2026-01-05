@@ -60,7 +60,7 @@ The system supports user authentication, role-based access control, event owners
 ### Auth Routes
 - User registration(roles are choosen here either an user or an orgainser)
 - User login
-- JWT token generation 
+- JWT token generation (access and refresh)
 - JWT tokens will save user Id as identity and users role as additional claim for future ownership and role checks
 
 ### Event Routes
@@ -113,7 +113,6 @@ python app.py
 #### The focus is on clean backend logic, security, and scalability, not frontend implementation.
 
 ### Future Improvements
-- Refresh tokens
 - Pagination and filtering
 - Rate limiting
 - Payment integration
