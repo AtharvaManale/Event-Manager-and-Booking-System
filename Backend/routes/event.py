@@ -9,11 +9,24 @@ event = Blueprint("event", __name__)
 @event.route('/Events', methods = ["GET"])
 @jwt_required()
 def events():
-    events = Event.query.all()
-    if not event:
-        return jsonify({"error" : "No Event present To Book!"}), 404
+    page = request.args.get('page', 1, type = int)
+    page_size = request.args.get('page_size', 5, type = int)
 
-    return jsonify ([e.to_dict() for e in events]), 200
+    events = Event.query.paginate(
+        page = page,
+        per_page = page_size,
+        error_out = False
+    )
+
+    if not event:
+        return jsonify({"message" : "No Event present To Book!"}), 404
+
+    return jsonify({'total items': events.total,
+                    'total_pages' : events.pages,
+                    'current_page' : events.page,
+                    'next_page' : events.has_next,
+                    'previous_page' : events.has_prev,
+                    'events': [e.to_dict() for e in events.items]}), 200
 
 @event.route('/Events/AddEvent',  methods=["POST"])
 @jwt_required()
