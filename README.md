@@ -113,7 +113,7 @@ python app.py
 #### The focus is on clean backend logic, security, and scalability, not frontend implementation.
 
 ### Future Improvements
-- Pagination and filtering
+- Filtering
 - Rate limiting
 - Payment integration
 - Deployment using Docker
