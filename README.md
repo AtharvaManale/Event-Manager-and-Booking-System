@@ -55,6 +55,31 @@ The system supports user authentication, role-based access control, event owners
 
 ---
 
+## Advanced Backend Design & Concurrency Control
+
+### Pessimistic Concurrency Control (Row Locking)
+- Simultaneous booking requests are serialized using SQLAlchemy's `with_for_update()` which places a write-lock (`SELECT ... FOR UPDATE` in MySQL) on the event row.
+- This prevents race conditions, overbooking, and double-bookings when multiple users click the register button at the exact same millisecond.
+
+### Temporary Seat Holds (Lazy Release Pattern)
+- When a user tries to book, seats are temporarily marked as `Pending` for 10 minutes to allow time for the payment process.
+- The server runs a clean "Lazy Release" check on-the-fly during active booking/event requests to automatically release expired holds and add the seats back to their events.
+- This eliminates the need for expensive background worker threads (like Celery or Cron jobs) making it lightweight and highly efficient.
+
+### JWT Claims-Based Authorization
+- User roles (user, organiser) are saved directly in the JWT as additional claims along with the user ID.
+- This allows the backend to perform stateless, highly secure role checks on protected routes without hitting the database on every single request.
+
+### API Pagination for Scalability
+- The `/Events` feed endpoint utilizes server-side pagination with SQLAlchemy.
+- It returns events in chunks (page-by-page) which keeps response times fast and reduces server memory overhead.
+
+### Secure CORS Configuration
+- Built-in Cross-Origin Resource Sharing (CORS) security is configured.
+- This makes sure only trusted frontend origins can communicate with our API and prevents external malicious domains from triggering endpoints.
+
+---
+
 ## API Modules
 
 ### Auth Routes

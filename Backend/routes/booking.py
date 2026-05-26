@@ -3,6 +3,7 @@ from database import db
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from models import Booking
 from models import Event
+from datetime import datetime
 
 booking = Blueprint("booking", __name__)
 
@@ -33,27 +34,37 @@ def add_booking(id):
         return jsonify({"error" : "Sorry You Cant Book Events"}), 403
 
     data = request.json
-    event = Event.query.get(id)
+    event = Event.query.with_for_update().filter(Event.id == id).first()
     seats_booking = data.get("seats")
 
     if Booking.query.filter_by(event_id = id, user_id = user_id).first():
         return ({"error" : "You Already Have A Similar Booking!"}), 400
     
+    if not event:                                     
+            return jsonify({"error": "Event not found!"}), 404
+    
     if event.remaining_seats < seats_booking:
         return({"error" : f'Only {event.remaining_seats} seat are available'}), 409
     
-    event.remaining_seats -= seats_booking
+    try:
+        event.remaining_seats -= seats_booking
 
-    booking = Booking(
-        user_id = user_id,
-        event_id = id,
-        booked_seats = seats_booking
-    )
-    db.session.add(booking)
-    db.session.commit()
+        booking = Booking(
+            user_id = user_id,
+            event_id = id,
+            booked_seats = seats_booking
+        )
 
-    return jsonify ({"message" : "Seats Booked Successfuly For The Event!",
-                    "remaining_seats" : event.remaining_seats}), 200
+        db.session.add(booking)
+        db.session.commit()
+        return jsonify ({"message" : "Seats Booked Successfuly! Lets move towards payment gateway",
+                        "booking_id" : booking.id, 
+                        "remaining_seats" : event.remaining_seats}), 200
+    
+    except Exception as e:
+        db.session.rollback()
+        return f"Booking failed: {str(e)}\n Try again...", 500
+
 
 @booking.route("/Deletebooking/<int:id>", methods = ["DELETE"])
 @jwt_required()
@@ -68,10 +79,15 @@ def delete_booking(id):
     if not booking:
         return jsonify({"error" : "Booking not found!"}), 404
     
-    event = Event.query.get(booking.event_id)
-    event.remaining_seats += booking.booked_seats
+    try:
+        event = Event.query.get(booking.event_id)
+        event.remaining_seats += booking.booked_seats
 
-    db.session.delete(booking)
-    db.session.commit()
-
-    return jsonify({"message" : "Booking cancelled successfully!"}), 200
+        db.session.delete(booking)
+        db.session.commit()
+        return jsonify({"message" : "Booking cancelled successfully!"}), 200
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message" : "Try again!",
+                        "error": str(e)}), 500

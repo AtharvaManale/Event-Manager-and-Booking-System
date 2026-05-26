@@ -44,7 +44,8 @@ class Booking(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'))
     booked_seats = db.Column(db.Integer, default = 1)
-    status = db.Column(db.String(20), default = 'Confirmed')
+    status = db.Column(db.String(20), default = 'Pending')
+    created_at = db.Column(db.DateTime, default = datetime.utcnow)
 
     def to_dict(self):
         return {

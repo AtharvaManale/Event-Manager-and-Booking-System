@@ -1,25 +1,44 @@
 from flask import Blueprint, request, jsonify
 from database import db
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
-from models import Event
-from datetime import datetime
+from models import Event, Booking
+from datetime import datetime, timedelta
 
 event = Blueprint("event", __name__)
 
 @event.route('/Events', methods = ["GET"])
 @jwt_required()
 def events():
+    today = datetime.utcnow()
+    timmer = today - timedelta(min=10)
+
+    event_query = Event.query.filter(Event.event_time >= today).order_by(Event.event_time.asc())
+
     page = request.args.get('page', 1, type = int)
     page_size = request.args.get('page_size', 5, type = int)
 
-    events = Event.query.paginate(
+    events = event_query.paginate(
         page = page,
         per_page = page_size,
         error_out = False
     )
 
-    if not event:
+    if not events.items:
         return jsonify({"message" : "No Event present To Book!"}), 404
+    
+    ##Deleting failed_bookings
+    try:
+        failed_bookings = Booking.query.filter(Booking.created_at < timmer, Booking.status == "Pending").all()
+        if failed_bookings:
+            for booking in failed_bookings:
+                event = Event.query.get(booking.event_id)
+                if event:
+                    event.remaining_seats += booking.booked_seats
+                booking.status = "Failed Booking"
+        
+            db.session.commit()
+    except Exception as e:
+        db.session.rollback()
 
     return jsonify({'total items': events.total,
                     'total_pages' : events.pages,
@@ -27,6 +46,8 @@ def events():
                     'next_page' : events.has_next,
                     'previous_page' : events.has_prev,
                     'events': [e.to_dict() for e in events.items]}), 200
+
+    
 
 @event.route('/Events/AddEvent',  methods=["POST"])
 @jwt_required()
