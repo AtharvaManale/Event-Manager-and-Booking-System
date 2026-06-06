@@ -10,7 +10,6 @@ event = Blueprint("event", __name__)
 @jwt_required()
 def events():
     today = datetime.utcnow()
-    timmer = today - timedelta(min=10)
 
     event_query = Event.query.filter(Event.event_time >= today).order_by(Event.event_time.asc())
 
@@ -26,19 +25,6 @@ def events():
     if not events.items:
         return jsonify({"message" : "No Event present To Book!"}), 404
     
-    ##Deleting failed_bookings
-    try:
-        failed_bookings = Booking.query.filter(Booking.created_at < timmer, Booking.status == "Pending").all()
-        if failed_bookings:
-            for booking in failed_bookings:
-                event = Event.query.get(booking.event_id)
-                if event:
-                    event.remaining_seats += booking.booked_seats
-                booking.status = "Failed Booking"
-        
-            db.session.commit()
-    except Exception as e:
-        db.session.rollback()
 
     return jsonify({'total items': events.total,
                     'total_pages' : events.pages,

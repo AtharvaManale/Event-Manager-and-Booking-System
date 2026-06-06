@@ -1,0 +1,34 @@
+from flask import Blueprint, jsonify, request
+from database import db
+from models import Booking
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+internal = Blueprint("internal", __name__)
+
+@internal.route("bookings/<int:booking_id>/payment-confirmation", methods = ['POST'])
+def payment_confirmed(booking_id):
+    api_key = request.headers.get("X_API_KEY")
+
+    if api_key != os.getenv("API_KEY"):
+        return jsonify({"Error" : "Unauthorized!"}), 401
+    
+    booking = Booking.query.get(id = booking_id)
+
+    if not booking:
+        return jsonify({"error":"Booking doesn't exists!"}), 404
+    
+    if booking.status == "CONFIRMED":
+        return jsonify({"message" : "Booking is already confirmed"}), 200
+    
+    data = request.json
+
+    booking.status = "CONFIRMED"
+    booking.payment_id = data["payment_id"]
+    booking.payment_status = data["payment_status"]
+
+    db.session.commit()
+
+    return jsonify({"message" : "Booking confirmed successfully!"}), 200

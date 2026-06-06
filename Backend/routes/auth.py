@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from database import db
 from models import User
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 
 auth = Blueprint("auth", __name__)
 
@@ -38,7 +38,8 @@ def login():
 @jwt_required(refresh = True)
 def New_refresh_token():
     identity = get_jwt_identity()
-    token = create_access_token(identity=identity)
+    claims= get_jwt()
+    token = create_access_token(identity=identity, additional_claims=claims)
 
     return jsonify({"message" : "New access_token generated successfully!", 
                     "access_token" : token}), 200
@@ -46,8 +47,8 @@ def New_refresh_token():
 @auth.route('/delete_acc', methods = ["DELETE"])
 @jwt_required()
 def delete_acc():
-    user = get_jwt_identity()
-    acc = User.query.filter_by(id = user.get("id")).first()
+    user_id = int(get_jwt_identity())
+    acc = User.query.filter_by(id = user_id).first()
 
     if not acc:
         return jsonify({"error" : "Account Not Found!"}), 404

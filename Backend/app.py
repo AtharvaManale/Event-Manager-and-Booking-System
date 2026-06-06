@@ -8,6 +8,7 @@ from datetime import timedelta
 from routes.auth import auth
 from routes.event import event
 from routes.booking import booking
+from routes.apicalls import internal
 import os
 
 load_dotenv()
@@ -28,6 +29,7 @@ def create_app():
     app.register_blueprint(auth, url_prefix = "/auth")
     app.register_blueprint(event, url_prefix = "/event")
     app.register_blueprint(booking, url_prefix = "/booking")
+    app.register_blueprint(internal, url_prefix = "/internal")
 
     return app
 

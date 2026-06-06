@@ -7,6 +7,7 @@ class User(db.Model):
     username = db.Column(db.String(50), unique = True, nullable = False)
     password_hash = db.Column(db.String(255), nullable = False)
     role = db.Column(db.String(20), default = "user") #user or organiser
+    payment_destination = db.Column(db.Text, nullable = True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -25,8 +26,9 @@ class Event(db.Model):
     organiser_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     title = db.Column(db.String(150), nullable = False)
     description = db.Column(db.Text, nullable = False)
-    event_time = db.Column(db.DateTime)
-    remaining_seats = db.Column(db.Integer)
+    event_time = db.Column(db.DateTime, nullable = False)
+    remaining_seats = db.Column(db.Integer, nullable = False)
+    price = db.Column(db.Integer, nullable = False)
     created_at = db.Column(db.DateTime, default = datetime.utcnow)
 
     def to_dict(self):
@@ -44,8 +46,11 @@ class Booking(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'))
     booked_seats = db.Column(db.Integer, default = 1)
-    status = db.Column(db.String(20), default = 'Pending')
+    status = db.Column(db.String(20), default = 'PENDING_PAYMENT')
+    payment_id = db.Column(db.String(255), nullable = True)
+    payment_status = db.Column(db.String(30), default = 'PENDING')
     created_at = db.Column(db.DateTime, default = datetime.utcnow)
+    updated_at = db.Column(db.DateTime)
 
     def to_dict(self):
         return {

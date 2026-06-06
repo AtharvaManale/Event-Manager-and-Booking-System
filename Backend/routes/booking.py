@@ -22,7 +22,7 @@ def show_bookings():
             .filter(Event.organiser_id == user_id)
             .all()
             )
-    return jsonify([b.to_dict() for b in bookings])
+    return jsonify([b.to_dict() for b in bookings]), 200
 
 @booking.route("/Addbooking/<int:id>", methods=["POST"])
 @jwt_required()
@@ -58,7 +58,7 @@ def add_booking(id):
         db.session.add(booking)
         db.session.commit()
         return jsonify ({"message" : "Seats Booked Successfuly! Lets move towards payment gateway",
-                        "booking_id" : booking.id, 
+                        "booking_id" : booking.id,
                         "remaining_seats" : event.remaining_seats}), 200
     
     except Exception as e:
