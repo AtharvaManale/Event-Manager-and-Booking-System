@@ -8,6 +8,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable = False)
     role = db.Column(db.String(20), default = "user") #user or organiser
     payment_destination = db.Column(db.Text, nullable = True)
+    created_at = db.Column(db.DateTime, default = datetime.utcnow)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -37,6 +38,7 @@ class Event(db.Model):
             "title" : self.title,
             "description" : self.description,
             "date" : self.event_time,
+            "price": self.price,
             "remaining_seats" : self.remaining_seats,
             "organiser_id" : self.organiser_id
         }
@@ -50,7 +52,7 @@ class Booking(db.Model):
     payment_id = db.Column(db.String(255), nullable = True)
     payment_status = db.Column(db.String(30), default = 'PENDING')
     created_at = db.Column(db.DateTime, default = datetime.utcnow)
-    updated_at = db.Column(db.DateTime)
+    updated_at = db.Column(db.DateTime, onupdate = datetime.utcnow)
 
     def to_dict(self):
         return {
