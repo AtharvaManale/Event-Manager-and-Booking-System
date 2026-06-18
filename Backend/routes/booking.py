@@ -4,6 +4,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from models import Booking
 from models import Event
 from datetime import datetime
+from services.payment_request import PaymentRequest
 
 booking = Blueprint("booking", __name__)
 
@@ -44,19 +45,26 @@ def add_booking(id):
             return jsonify({"error": "Event not found!"}), 404
     
     if event.remaining_seats < seats_booking:
-        return({"error" : f'Only {event.remaining_seats} seat are available'}), 409
+        return({"error" : f'{event.remaining_seats} seat are available'}), 409
     
     try:
         event.remaining_seats -= seats_booking
 
+        total_amount = seats_booking * event.price
+
         booking = Booking(
             user_id = user_id,
             event_id = id,
-            booked_seats = seats_booking
+            booked_seats = seats_booking,
+            total_amount = total_amount,
+            currency = event.currency
         )
 
         db.session.add(booking)
         db.session.commit()
+
+        PaymentRequest.payment_creation(booking)
+        
         return jsonify ({"message" : "Seats Booked Successfuly! Lets move towards payment gateway",
                         "booking_id" : booking.id,
                         "remaining_seats" : event.remaining_seats}), 200

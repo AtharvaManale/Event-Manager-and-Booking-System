@@ -30,6 +30,7 @@ class Event(db.Model):
     event_time = db.Column(db.DateTime, nullable = False)
     remaining_seats = db.Column(db.Integer, nullable = False)
     price = db.Column(db.Integer, nullable = False)
+    currency = db.Column(db.String(10), default = "INR")
     created_at = db.Column(db.DateTime, default = datetime.utcnow)
 
     def to_dict(self):
@@ -48,8 +49,10 @@ class Booking(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'))
     booked_seats = db.Column(db.Integer, default = 1)
+    total_amount = db.Column(db.Integer, nullable = False)
+    currency = db.Column(db.String(10), default = "INR")
     status = db.Column(db.String(20), default = 'PENDING_PAYMENT')
-    payment_id = db.Column(db.String(255), nullable = True)
+    payment_id = db.Column(db.String(255), nullable = True, )
     payment_status = db.Column(db.String(30), default = 'PENDING')
     created_at = db.Column(db.DateTime, default = datetime.utcnow)
     updated_at = db.Column(db.DateTime, onupdate = datetime.utcnow)

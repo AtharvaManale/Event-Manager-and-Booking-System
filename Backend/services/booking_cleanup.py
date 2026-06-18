@@ -1,5 +1,5 @@
-from Backend.models import Booking, Event
-from Backend.database import db
+from models import Booking, Event
+from database import db
 from datetime import datetime, timedelta
 
 timmer = datetime.utcnow() - timedelta(minutes=15)
