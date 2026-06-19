@@ -53,7 +53,8 @@ def add_event():
         title = data["title"],
         description = data["description"],
         event_time = datetime.strptime(data["date"], "%Y-%m-%d %H:%M"),
-        remaining_seats = int(data["remaining_seats"])
+        remaining_seats = int(data["remaining_seats"]),
+        price = int(data["price"])
     )
     db.session.add(event)
     db.session.commit()
@@ -77,8 +78,9 @@ def update_event(id):
     data = request.json
     event.title = data.get("title", event.title)
     event.description = data.get("description", event.description)
-    event.event_time = datetime.strptime(data.get("date", event.event_time), "%Y-%m-%d %H:%M")
-    event.remaining_seats = int(data.get("seats", str(event.remaining_seats)))
+    event.event_time = datetime.strptime(data.get("date", event.event_time.strftime("%Y-%m-%d %H:%M")), "%Y-%m-%d %H:%M")
+    event.remaining_seats = int(data.get("seats", event.remaining_seats))
+    event.price = int(data.get("price", event.price))
  
     db.session.commit()
     return jsonify({"message" : "Event updated successfuly!"}), 200

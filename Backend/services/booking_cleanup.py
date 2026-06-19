@@ -2,12 +2,11 @@ from models import Booking, Event
 from database import db
 from datetime import datetime, timedelta
 
-timmer = datetime.utcnow() - timedelta(minutes=15)
-
 class BookingCleanupService():
 
     @staticmethod
     def cleanup():
+        timmer = datetime.utcnow() - timedelta(minutes=15)
         try:
             failed_bookings = Booking.query.filter(Booking.created_at < timmer, Booking.status == "PENDING_PAYMENT").all()
             if failed_bookings:

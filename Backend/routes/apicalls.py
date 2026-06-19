@@ -16,7 +16,7 @@ def payment_created(booking_id):
     if api_key != os.getenv("API_KEY"):
         return jsonify({"Error" : "Unauthorized!"}), 401
 
-    booking = Booking.query.get(id = booking_id)
+    booking = db.session.get(Booking, booking_id)
     
     if not booking:
         return jsonify({"error":"Booking doesn't exists!"}), 404
@@ -25,6 +25,8 @@ def payment_created(booking_id):
     
     booking.payment_id = data["payment_id"]
     booking.payment_status = data["payment_status"]
+
+    db.session.commit()
 
     return jsonify({"message": "Payment successfully created."})
 
@@ -36,7 +38,7 @@ def payment_confirmed(booking_id):
     if api_key != os.getenv("API_KEY"):
         return jsonify({"Error" : "Unauthorized!"}), 401
     
-    booking = Booking.query.get(id = booking_id)
+    booking = db.session.get(Booking, booking_id)
 
     if not booking:
         return jsonify({"error":"Booking doesn't exists!"}), 404
@@ -45,10 +47,15 @@ def payment_confirmed(booking_id):
         return jsonify({"message" : "Booking is already confirmed"}), 200
     
     data = request.json
-
-    booking.status = "CONFIRMED"
+    status = data["payment_status"]
     booking.payment_id = data["payment_id"]
-    booking.payment_status = data["payment_status"]
+    booking.payment_status = status
+
+    if status == 'CAPTURED':
+        booking.status = "CONFIRMED"
+
+    elif status in ["FAILED", "EXPIRED"]:
+        booking.status = "PAYMENT_PENDING"
 
     db.session.commit()
 

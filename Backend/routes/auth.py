@@ -38,8 +38,8 @@ def login():
 @jwt_required(refresh = True)
 def New_refresh_token():
     identity = get_jwt_identity()
-    claims= get_jwt()
-    token = create_access_token(identity=identity, additional_claims=claims)
+    claims = get_jwt()
+    token = create_access_token(identity=identity, additional_claims={"role": claims.get("role")})
 
     return jsonify({"message" : "New access_token generated successfully!", 
                     "access_token" : token}), 200

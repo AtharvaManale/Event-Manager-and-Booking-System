@@ -10,14 +10,13 @@ class PaymentRequest:
     @staticmethod
     def payment_creation(booking: Booking):
 
-        url = (f"{os.getenv("PAYMENT_URL")}"
-               f"/payment")
+        url = (f"{os.getenv("PAYMENT_URL")}/payment")
         
         payload = {
-            "booking_id":Booking.id,
-            "user_id":Booking.user_id,
-            "amount":Booking.total_amount,
-            "currency":Booking.currency
+            "booking_id":booking.id,
+            "user_id":booking.user_id,
+            "amount":booking.total_amount,
+            "currency":booking.currency
         }
 
         headers = {

@@ -14,9 +14,11 @@ def show_bookings():
     user_id = int(get_jwt_identity())
     claims = get_jwt()
     
-    if claims["role"] == "user":
-        bookings = Booking.query.filter_by(user_id = user_id)   
-    elif claims["role"] == "organiser":
+    bookings = []
+    role = claims.get("role")
+    if role == "user":
+        bookings = Booking.query.filter_by(user_id = user_id).all()   
+    elif role == "organiser":
         bookings = (
             Booking.query
             .join(Event, Booking.event_id == Event.id)
@@ -31,21 +33,20 @@ def add_booking(id):
     user_id = int(get_jwt_identity())
     claims = get_jwt()
 
-    if claims["role"] != "user":
+    if claims.get("role") != "user":
         return jsonify({"error" : "Sorry You Cant Book Events"}), 403
 
-    data = request.json
     event = Event.query.with_for_update().filter(Event.id == id).first()
-    seats_booking = data.get("seats")
+    seats_booking = 1
 
     if Booking.query.filter_by(event_id = id, user_id = user_id).first():
-        return ({"error" : "You Already Have A Similar Booking!"}), 400
+        return jsonify({"error" : "You Already Have A Similar Booking!"}), 400
     
     if not event:                                     
-            return jsonify({"error": "Event not found!"}), 404
+        return jsonify({"error": "Event not found!"}), 404
     
     if event.remaining_seats < seats_booking:
-        return({"error" : f'{event.remaining_seats} seat are available'}), 409
+        return jsonify({"error" : f'{event.remaining_seats} seat are available'}), 409
     
     try:
         event.remaining_seats -= seats_booking
@@ -61,9 +62,10 @@ def add_booking(id):
         )
 
         db.session.add(booking)
-        db.session.commit()
+        db.session.flush()
 
         PaymentRequest.payment_creation(booking)
+        db.session.commit()
         
         return jsonify ({"message" : "Seats Booked Successfuly! Lets move towards payment gateway",
                         "booking_id" : booking.id,
@@ -71,7 +73,7 @@ def add_booking(id):
     
     except Exception as e:
         db.session.rollback()
-        return f"Booking failed: {str(e)}\n Try again...", 500
+        return jsonify({"error": f"Booking failed: {str(e)}\n Try again..."}), 500
 
 
 @booking.route("/Deletebooking/<int:id>", methods = ["DELETE"])
@@ -80,16 +82,20 @@ def delete_booking(id):
     user_id = int(get_jwt_identity())
     claims = get_jwt()
 
-    if claims["role"] != "user":
+    if claims.get("role") != "user":
         return jsonify({"error" : "Not an user!"}), 401
     
-    booking = Booking.query.get(id)
+    booking = db.session.get(Booking, id)
     if not booking:
         return jsonify({"error" : "Booking not found!"}), 404
     
+    if booking.user_id != user_id:
+        return jsonify({"error" : "Unauthorized to cancel this booking!"}), 403
+    
     try:
-        event = Event.query.get(booking.event_id)
-        event.remaining_seats += booking.booked_seats
+        event = db.session.get(Event, booking.event_id)
+        if event:
+            event.remaining_seats += booking.booked_seats
 
         db.session.delete(booking)
         db.session.commit()
