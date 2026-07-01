@@ -4,7 +4,7 @@
 A backend system (Api system) for managing events and bookings, built using Flask and SQLAlchemy.
 This project focuses on clean architecture, authentication, authorization, and real-world backend patterns rather than UI.
 
-The system supports user authentication, role-based access control, event ownership, and secure booking workflows using JWT tokens.
+The system supports user authentication, role-based access control, event ownership, secure booking workflows, and integrations with an external payment microservice.
 
 ---
 
@@ -15,6 +15,8 @@ The system supports user authentication, role-based access control, event owners
 - Flask-Migrate
 - SQLAlchemy
 - MySQL as database
+- HTTP Requests (for Service-to-Service communication)
+- FastAPI (External Payment Microservice integration)
 
 ---
 
@@ -37,10 +39,18 @@ The system supports user authentication, role-based access control, event owners
 - Authenticated access to view events
 - Ownership checks enforced at important changes
 
-### Booking System
+### Booking & Payment Workflows
 - Only users with the 'user' role can book events (limited to 1 seat per transaction)
 - Users can view and cancel their own bookings (with ownership checks)
 - Event organisers can view bookings for their events
+- Synchronous booking validation with transaction-safe seat decrement
+- Integrated payment request creation sent directly to the payment microservice
+
+### Payment Integration & Callbacks
+- Outbound API calls to initialize payments on creation
+- Inbound callback validation using a shared API key (`X_API_KEY`)
+- Real-time confirmation of transactions (`CAPTURED` payments confirm bookings)
+- Auto-handling of failed or expired payment attempts
 
 ### Database & Migrations
 - SQLAlchemy ORM for database modeling
@@ -62,9 +72,13 @@ The system supports user authentication, role-based access control, event owners
 - This prevents race conditions, overbooking, and double-bookings when multiple users click the register button at the exact same millisecond.
 
 ### Temporary Seat Holds (Booking Cleanup Service)
-- When a user tries to book, seats are temporarily marked as `PENDING_PAYMENT` for 15 minutes to allow time for the payment process.
+- When a user tries to book, seats are temporarily marked as `PENDING_PAYMENT` for 15 minutes to allow time for the payment process on the microservice.
 - An automated `BookingCleanupService` is provided to check and release expired holds, returning the seats back to their events.
 - This maintains high data consistency and prevents seats from being locked indefinitely.
+
+### Service-to-Service Communication (Microservices Pattern)
+- Direct, synchronous REST communication from the Flask app to the FastAPI payment microservice via `requests.post` with built-in timeouts.
+- Microservice calls back the Flask system asynchronously using secure token verification (`X_API_KEY` header) to update payment status and finalize bookings.
 
 ### JWT Claims-Based Authorization
 - User roles (user, organiser) are saved directly in the JWT as additional claims along with the user ID.
@@ -101,6 +115,11 @@ The system supports user authentication, role-based access control, event owners
 - View bookings for an event organiser
 - Cancel a booking (restricted to the owner of the booking)
 
+### Internal / Payment Callback Routes
+- Secure endpoints matching the shared `X_API_KEY` header:
+  - `POST /internal/booking/<int:booking_id>/payment-created`: Used by the payment microservice to log payment initialization details.
+  - `POST /internal/bookings/<int:booking_id>/payment-confirmation`: Confirms status changes (sets booking to `CONFIRMED` on `CAPTURED` payments, or reverts to pending/failed).
+
 ---
 
 ## SetUp Instructions
@@ -112,7 +131,7 @@ The system supports user authentication, role-based access control, event owners
 pip install -r requirments.txt
 ```
 
-4. set environment variables (SECRET_KEY, JWT_SECRET_KEY, DATABASE_URL)
+4. set environment variables (SECRET_KEY, JWT_SECRET_KEY, DATABASE_URL, API_KEY, PAYMENT_URL)
 5. Initialize database through migrations cli commands
 
 ```bash
@@ -138,10 +157,10 @@ python app.py
 #### The focus is on clean backend logic, security, and scalability, not frontend implementation.
 
 ### Future Improvements
-- Filtering
-- Rate limiting
-- Payment integration
-- Deployment using Docker
+- Filtering and search functionalities
+- Rate limiting to protect API endpoints
+- Containerization & deployment using Docker
+- Unit and integration testing for payment webhooks
 
 ### Author
 Atharva Manale aka Apex Levo
