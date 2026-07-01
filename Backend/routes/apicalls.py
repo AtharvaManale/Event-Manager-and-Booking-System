@@ -28,7 +28,7 @@ def payment_created(booking_id):
 
     db.session.commit()
 
-    return jsonify({"message": "Payment successfully created."})
+    return jsonify({"message": data.message}), 200
 
 
 @internal.route("bookings/<int:booking_id>/payment-confirmation", methods = ['POST'])

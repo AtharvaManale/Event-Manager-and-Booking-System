@@ -27,19 +27,19 @@ The system supports user authentication, role-based access control, event owners
 - Token-based user identity handling
 
 ### Role-Based Access Control
-- Two roles for user (user, orgnaiser)
+- Two roles for users (user, organiser)
 - Role checks for sensitive operations
-- Admin-only and organizer-only routes
+- Organizer-only routes
 
 ### Event Management
-- Only organisers Create, update, and delete events
-- Only event organisers can modify/delete events
-- Public access to view events
+- Only organisers can create, update, and delete events
+- Only event organisers can modify/delete their own events
+- Authenticated access to view events
 - Ownership checks enforced at important changes
 
 ### Booking System
-- only Users with role as user can book events
-- Users can view their own bookings
+- Only users with the 'user' role can book events (limited to 1 seat per transaction)
+- Users can view and cancel their own bookings (with ownership checks)
 - Event organisers can view bookings for their events
 
 ### Database & Migrations
@@ -61,10 +61,10 @@ The system supports user authentication, role-based access control, event owners
 - Simultaneous booking requests are serialized using SQLAlchemy's `with_for_update()` which places a write-lock (`SELECT ... FOR UPDATE` in MySQL) on the event row.
 - This prevents race conditions, overbooking, and double-bookings when multiple users click the register button at the exact same millisecond.
 
-### Temporary Seat Holds (Lazy Release Pattern)
-- When a user tries to book, seats are temporarily marked as `Pending` for 10 minutes to allow time for the payment process.
-- The server runs a clean "Lazy Release" check on-the-fly during active booking/event requests to automatically release expired holds and add the seats back to their events.
-- This eliminates the need for expensive background worker threads (like Celery or Cron jobs) making it lightweight and highly efficient.
+### Temporary Seat Holds (Booking Cleanup Service)
+- When a user tries to book, seats are temporarily marked as `PENDING_PAYMENT` for 15 minutes to allow time for the payment process.
+- An automated `BookingCleanupService` is provided to check and release expired holds, returning the seats back to their events.
+- This maintains high data consistency and prevents seats from being locked indefinitely.
 
 ### JWT Claims-Based Authorization
 - User roles (user, organiser) are saved directly in the JWT as additional claims along with the user ID.
@@ -83,23 +83,23 @@ The system supports user authentication, role-based access control, event owners
 ## API Modules
 
 ### Auth Routes
-- User registration(roles are choosen here either an user or an orgainser)
+- User registration (roles are chosen here, either a user or an organiser)
 - User login
-- JWT token generation (access and refresh)
+- JWT token generation (access and refresh tokens with clean claims separation on refresh)
 - JWT tokens will save user Id as identity and users role as additional claim for future ownership and role checks
 
 ### Event Routes
-- Firstly at every routes roles will checked either an user or an orgainser and only organisers are allowes to access these below features
+- First, user roles are checked (either user or organiser), and only organisers are allowed to access the features below
 - Create event
-- Update/Delete event (accessed only by the organiser of that event)
-- Get all events (accessed by all users)
-- Get single event details (accessed by all users)
+- Update/Delete event (accessed only by the organiser who created that event)
+- Get all events (accessed by all authenticated users)
 
 ### Booking Routes
-- Firstly at every routes roles will checked either an user or an orgainser and only user are allowed to access below features
+- First, user roles are checked, and only users with the 'user' role are allowed to access the features below
 - Book an event
 - View user bookings
 - View bookings for an event organiser
+- Cancel a booking (restricted to the owner of the booking)
 
 ---
 
@@ -113,12 +113,12 @@ pip install -r requirments.txt
 ```
 
 4. set environment variables (SECRET_KEY, JWT_SECRET_KEY, DATABASE_URL)
-5. Inialize database through migrations cli commands
+5. Initialize database through migrations cli commands
 
 ```bash
 flask db init
 flask db migrate
-flask bd upgarde
+flask db upgrade
 ```
 6. Runserver
 ```bash
